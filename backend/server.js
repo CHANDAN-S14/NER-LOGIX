@@ -57,7 +57,7 @@ app.get('/api/status', async (req, res) => {
   const dbOk = isDbConnected();
   let aiOk = false;
   try {
-    aiOk = await checkAiHealth();
+    aiOk = await checkAiHealth(60000);
   } catch {
     aiOk = false;
   }
