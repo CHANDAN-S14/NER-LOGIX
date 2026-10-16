@@ -62,21 +62,95 @@ export function decodePolyline(encoded) {
   return coordinates;
 }
 
+
+/**
+ * Normalize route geometry into Leaflet format:
+ * [[latitude, longitude], ...]
+ *
+ * Supported:
+ * 1. route.geometry.coordinates — GeoJSON [longitude, latitude]
+ * 2. route.coordinates — [latitude, longitude] by default
+ * 3. route.geometry — encoded polyline string
+ * 4. route.polyline — encoded polyline string
+ */
 export function normalizeRouteGeometry(route) {
   if (!route) return [];
+
+  const isValidLatLon = (lat, lon) =>
+    Number.isFinite(lat) &&
+    Number.isFinite(lon) &&
+    lat >= -90 &&
+    lat <= 90 &&
+    lon >= -180 &&
+    lon <= 180;
+
+  const cleanLatLon = (coordinates) => {
+    if (!Array.isArray(coordinates)) return [];
+
+    return coordinates
+      .filter(
+        (point) =>
+          Array.isArray(point) && point.length >= 2
+      )
+      .map((point) => [
+        Number(point[0]),
+        Number(point[1]),
+      ])
+      .filter(([lat, lon]) => isValidLatLon(lat, lon));
+  };
+
+  // GeoJSON always uses [longitude, latitude].
+  if (
+    route.geometry &&
+    typeof route.geometry === 'object' &&
+    route.geometry.type === 'LineString' &&
+    Array.isArray(route.geometry.coordinates)
+  ) {
+    return route.geometry.coordinates
+      .filter(
+        (point) =>
+          Array.isArray(point) && point.length >= 2
+      )
+      .map(([lon, lat]) => [
+        Number(lat),
+        Number(lon),
+      ])
+      .filter(([lat, lon]) => isValidLatLon(lat, lon));
+  }
+
+  // Other GeoJSON geometry objects with coordinates.
+  if (
+    route.geometry &&
+    typeof route.geometry === 'object' &&
+    Array.isArray(route.geometry.coordinates)
+  ) {
+    return route.geometry.coordinates
+      .filter(
+        (point) =>
+          Array.isArray(point) && point.length >= 2
+      )
+      .map(([lon, lat]) => [
+        Number(lat),
+        Number(lon),
+      ])
+      .filter(([lat, lon]) => isValidLatLon(lat, lon));
+  }
+
+  // Encoded polyline: decodePolyline returns [lat, lon].
+  if (typeof route.geometry === 'string') {
+    return cleanLatLon(decodePolyline(route.geometry));
+  }
+
+  if (typeof route.polyline === 'string') {
+    return cleanLatLon(decodePolyline(route.polyline));
+  }
+
+  // Plain coordinates default to [lat, lon].
+  // Specify the source format explicitly if these are GeoJSON.
   if (Array.isArray(route.coordinates)) {
-    // [[lat,lon]] or [[lon,lat]] — detect GeoJSON order
-    const first = route.coordinates[0];
-    if (Array.isArray(first) && first[0] > 50 && first[1] < 50) {
-      // likely [lon, lat] GeoJSON
-      return route.coordinates.map(([lon, lat]) => [lat, lon]);
-    }
-    return route.coordinates;
+    return cleanLatLon(route.coordinates);
   }
-  if (route.geometry?.coordinates) {
-    return route.geometry.coordinates.map(([lon, lat]) => [lat, lon]);
-  }
-  if (typeof route.geometry === 'string') return decodePolyline(route.geometry);
-  if (typeof route.polyline === 'string') return decodePolyline(route.polyline);
+
   return [];
 }
+
