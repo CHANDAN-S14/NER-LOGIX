@@ -63,7 +63,7 @@ export default function LocationSearch({
 
   return (
     <div ref={wrapRef} className="relative">
-      <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2.5 shadow-sm focus-within:border-brand-400 focus-within:ring-2 focus-within:ring-brand-100">
+      <div className="flex items-center gap-2 rounded-xl border border-slate-200 bg-white px-3 py-2 sm:py-2.5 min-h-[42px] shadow-sm focus-within:border-brand-400 focus-within:ring-2 focus-within:ring-brand-100">
         <Icon className={`h-4 w-4 shrink-0 ${iconClass}`} />
         <input
           type="text"
@@ -78,26 +78,26 @@ export default function LocationSearch({
         {!loading && query && (
           <button
             type="button"
-            aria-label="Clear"
+            aria-label="Clear location search"
             onClick={() => {
               setQuery('');
               setSuggestions([]);
               onClear?.();
             }}
-            className="rounded p-0.5 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
+            className="flex h-7 w-7 min-h-[32px] min-w-[32px] items-center justify-center rounded-lg p-1 text-slate-400 hover:bg-slate-100 hover:text-slate-600"
           >
-            <X className="h-3.5 w-3.5" />
+            <X className="h-4 w-4" />
           </button>
         )}
       </div>
 
       {open && suggestions.length > 0 && (
-        <ul className="absolute z-40 mt-1 max-h-56 w-full overflow-auto rounded-xl border border-slate-200 bg-white py-1 shadow-lg animate-fade-in">
+        <ul className="absolute z-40 mt-1 max-h-56 w-full overflow-auto rounded-xl border border-slate-200 bg-white py-1 shadow-lg animate-fade-in ner-scroll">
           {suggestions.map((s) => (
             <li key={s.id}>
               <button
                 type="button"
-                className="flex w-full items-start gap-2 px-3 py-2 text-left text-xs hover:bg-brand-50"
+                className="flex w-full items-start gap-2 px-3 py-2.5 min-h-[40px] text-left text-xs hover:bg-brand-50"
                 onClick={() => {
                   setQuery(s.label);
                   setOpen(false);

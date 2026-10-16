@@ -1238,14 +1238,17 @@ export default function NavigationMode({
           right-0
           top-0
           z-[10000]
-          p-3
+          p-2.5
+          sm:p-3
         "
       >
 
         <div className="
           flex
+          flex-wrap
           items-start
           justify-between
+          gap-2
         ">
 
           {/* EXIT */}
@@ -1260,13 +1263,16 @@ export default function NavigationMode({
               gap-1.5
               rounded-full
               bg-white/95
-              px-3
+              px-3.5
               py-2
+              min-h-[38px]
               text-xs
               font-semibold
               text-slate-800
               shadow-lg
               backdrop-blur
+              active:scale-95
+              transition-transform
             "
           >
             <ArrowLeft
@@ -1493,11 +1499,14 @@ export default function NavigationMode({
       <div
         className="
           absolute
-          left-3
-          top-[72px]
+          left-2.5
+          sm:left-3
+          top-[62px]
+          sm:top-[72px]
           z-[10000]
-          w-[285px]
-          max-w-[calc(100vw-24px)]
+          w-auto
+          max-w-[calc(100vw-20px)]
+          sm:max-w-xs
         "
       >
 
@@ -1625,23 +1634,30 @@ export default function NavigationMode({
 
       <div
         className="
+          pointer-events-none
           absolute
           bottom-0
           left-0
-          w-100
           right-0
           z-[10000]
-          p-3
+          w-full
+          max-w-lg
+          mx-auto
+          p-2.5
+          sm:p-3
         "
       >
 
         <div
           className="
+            pointer-events-auto
             rounded-2xl
             bg-white/95
             p-3
             shadow-xl
             backdrop-blur
+            border
+            border-slate-100
           "
         >
 
@@ -1744,7 +1760,8 @@ export default function NavigationMode({
                 className="
                   mt-0.5
                   truncate
-                  text-sm
+                  text-xs
+                  min-[360px]:text-sm
                   font-bold
                   leading-tight
                   text-slate-900
@@ -1784,7 +1801,8 @@ export default function NavigationMode({
                 className="
                   mt-0.5
                   truncate
-                  text-sm
+                  text-xs
+                  min-[360px]:text-sm
                   font-bold
                   leading-tight
                   text-slate-900
@@ -1824,7 +1842,8 @@ export default function NavigationMode({
                 className="
                   mt-0.5
                   truncate
-                  text-sm
+                  text-xs
+                  min-[360px]:text-sm
                   font-bold
                   leading-tight
                   text-emerald-800

@@ -72,8 +72,8 @@ export default function WeatherPanel() {
 
         <Button
           variant="secondary"
-          size="sm"
-          className="mt-2 w-full"
+          size="md"
+          className="mt-2 w-full min-h-[40px]"
           loading={gpsLoading}
           onClick={async () => {
             try {
@@ -113,12 +113,12 @@ export default function WeatherPanel() {
               {rows.map((r) => (
                 <div
                   key={r.label}
-                  className="rounded-xl border border-slate-100 bg-slate-50/80 px-3 py-2.5"
+                  className="min-w-0 rounded-xl border border-slate-100 bg-slate-50/80 px-2.5 sm:px-3 py-2 sm:py-2.5"
                 >
-                  <dt className="text-[10px] font-bold uppercase tracking-wide text-slate-400">
+                  <dt className="truncate text-[9px] sm:text-[10px] font-bold uppercase tracking-wide text-slate-400">
                     {r.label}
                   </dt>
-                  <dd className="mt-0.5 text-sm font-bold text-slate-800">{r.value}</dd>
+                  <dd className="mt-0.5 truncate text-xs sm:text-sm font-bold text-slate-800">{r.value}</dd>
                 </div>
               ))}
             </dl>

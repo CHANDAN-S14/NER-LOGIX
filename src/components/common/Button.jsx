@@ -9,9 +9,9 @@ const variants = {
 };
 
 const sizes = {
-  sm: 'h-8 px-3 text-xs rounded-lg',
-  md: 'h-10 px-4 text-sm rounded-xl',
-  lg: 'h-11 px-5 text-sm rounded-xl',
+  sm: 'min-h-[36px] px-3 py-1.5 text-xs rounded-lg',
+  md: 'min-h-[40px] px-4 py-2 text-sm rounded-xl',
+  lg: 'min-h-[44px] px-5 py-2.5 text-sm sm:text-base rounded-xl',
 };
 
 export default function Button({

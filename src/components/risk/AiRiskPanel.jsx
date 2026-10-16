@@ -86,13 +86,13 @@ export default function AiRiskPanel() {
 
       {risk.status === 'success' && risk.data && (
         <div className="space-y-4">
-          <div className="flex items-center gap-4">
+          <div className="flex flex-col min-[380px]:flex-row items-center min-[380px]:items-start gap-3 sm:gap-4">
             {(risk.data.riskScore != null || risk.data.risk_score != null || risk.data.score != null) && (
               <RiskGauge
                 score={risk.data.riskScore ?? risk.data.risk_score ?? risk.data.score}
               />
             )}
-            <div className="min-w-0 flex-1">
+            <div className="min-w-0 flex-1 text-center min-[380px]:text-left">
               {(risk.data.riskLevel || risk.data.risk_level || risk.data.level) && (
                 <span
                   className={`inline-flex rounded-lg border px-2.5 py-1 text-xs font-bold uppercase tracking-wide ${riskBadgeClasses(

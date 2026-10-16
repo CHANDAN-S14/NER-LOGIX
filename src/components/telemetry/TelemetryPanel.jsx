@@ -33,27 +33,27 @@ function TelemetryCard({
           : 'text-slate-800';
 
   return (
-    <div className="rounded-xl border border-slate-100 bg-white p-2.5 shadow-sm">
-      <div className="flex items-center justify-between">
-        <p className="text-[10px] font-bold uppercase tracking-wider text-slate-400">
+    <div className="min-w-0 rounded-xl border border-slate-100 bg-white p-2.5 shadow-sm">
+      <div className="flex items-center justify-between gap-1">
+        <p className="truncate text-[10px] font-bold uppercase tracking-wider text-slate-400">
           {label}
         </p>
 
         {value != null &&
           value !== 'Not connected' &&
           value !== 'Loading…' && (
-            <span className="live-dot h-1.5 w-1.5 rounded-full bg-safe" />
+            <span className="live-dot h-1.5 w-1.5 shrink-0 rounded-full bg-safe" />
           )}
       </div>
 
       <p
-        className={`mt-1 text-sm font-bold ${toneClass}`}
+        className={`mt-1 truncate text-xs min-[360px]:text-sm font-bold ${toneClass}`}
       >
         {value ?? 'Not connected'}
       </p>
 
       {hint && (
-        <p className="mt-0.5 text-[10px] text-slate-400">
+        <p className="mt-0.5 truncate text-[10px] text-slate-400">
           {hint}
         </p>
       )}
@@ -546,7 +546,7 @@ export default function TelemetryPanel() {
 
       {/* TELEMETRY CARDS */}
 
-      <div className="grid grid-cols-3 gap-2">
+      <div className="grid grid-cols-2 min-[420px]:grid-cols-3 gap-2">
 
         {cards.map((card) => (
           <TelemetryCard

@@ -123,7 +123,7 @@ const [navigating, setNavigating] =
     <section className="animate-fade-in space-y-3">
       {selectedRoute && (
         <div className="rounded-2xl border border-brand-100 bg-brand-50/60 p-3">
-          <div className="flex items-center justify-between gap-2">
+          <div className="flex flex-wrap items-center justify-between gap-2">
             <div>
               <p className="text-[11px] font-semibold uppercase tracking-wide text-brand-700">
                 Selected route
@@ -144,8 +144,8 @@ const [navigating, setNavigating] =
           </div>
          <Button
   variant="primary"
-  size="sm"
-  className="mt-3 w-full"
+  size="md"
+  className="mt-3 w-full min-h-[40px]"
   onClick={() => {
     if (!selectedRoute) {
       console.warn(
@@ -162,8 +162,8 @@ const [navigating, setNavigating] =
     setNavigating(true);
   }}
 >
-  <Navigation2 className="h-3.5 w-3.5" />
-  Start Nav
+  <Navigation2 className="h-4 w-4" />
+  Start Navigation
 </Button>
         </div>
       )}
@@ -204,7 +204,7 @@ const [navigating, setNavigating] =
                   : 'border-slate-200 bg-white hover:border-slate-300 hover:shadow-sm'
               }`}
             >
-              <div className="flex items-start gap-3">
+              <div className="flex items-start gap-2.5 sm:gap-3">
                 <span
                   className={`mt-1 flex h-4 w-4 shrink-0 items-center justify-center rounded-full border-2 ${
                     selected ? 'border-brand-600' : 'border-slate-300'
@@ -213,9 +213,9 @@ const [navigating, setNavigating] =
                   {selected && <span className="h-2 w-2 rounded-full bg-brand-600" />}
                 </span>
                 <div className="min-w-0 flex-1">
-                  <div className="flex items-start justify-between gap-2">
-                    <div>
-                      <p className="text-sm font-bold text-slate-900">
+                  <div className="flex flex-wrap items-start justify-between gap-1.5 sm:gap-2">
+                    <div className="min-w-0">
+                      <p className="text-sm font-bold text-slate-900 truncate">
                         {categoryLabel(route, index)}
                       </p>
                       <p className="mt-0.5 text-xs text-slate-500">
@@ -223,7 +223,7 @@ const [navigating, setNavigating] =
                       </p>
                     </div>
                     {level != null && (
-                      <Badge variant={riskVariant(level)}>
+                      <Badge variant={riskVariant(level)} className="shrink-0 text-[10px]">
                         {score != null ? `Risk ${score} · ` : ''}
                         {formatRiskLabel(level)}
                       </Badge>

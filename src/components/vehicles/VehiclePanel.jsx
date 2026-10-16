@@ -22,18 +22,18 @@ export default function VehiclePanel() {
           {demoFleet.map((v) => (
             <li
               key={v.id}
-              className="flex items-center gap-3 rounded-xl border border-amber-100 bg-amber-50/50 px-3 py-2.5"
+              className="flex items-center gap-2.5 sm:gap-3 rounded-xl border border-amber-100 bg-amber-50/50 px-2.5 sm:px-3 py-2.5"
             >
-              <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-white text-amber-700 shadow-sm">
+              <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-white text-amber-700 shadow-sm">
                 <Truck className="h-4 w-4" />
               </div>
               <div className="min-w-0 flex-1">
-                <p className="text-sm font-bold text-slate-900">{v.name}</p>
-                <p className="text-[11px] text-slate-500">
+                <p className="truncate text-sm font-bold text-slate-900">{v.name}</p>
+                <p className="truncate text-[11px] text-slate-500">
                   {v.status} · {v.position[0].toFixed(3)}, {v.position[1].toFixed(3)}
                 </p>
               </div>
-              <Badge variant="demo">DEMO</Badge>
+              <Badge variant="demo" className="shrink-0">DEMO</Badge>
             </li>
           ))}
         </ul>
@@ -72,18 +72,18 @@ export default function VehiclePanel() {
             {liveVehicles.map((v) => (
               <li
                 key={v.id || v._id || v.name}
-                className="flex items-center gap-3 rounded-xl border border-slate-100 px-3 py-2.5"
+                className="flex items-center gap-2.5 sm:gap-3 rounded-xl border border-slate-100 px-2.5 sm:px-3 py-2.5"
               >
-                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-info-soft text-info">
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-info-soft text-info">
                   <Truck className="h-4 w-4" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <p className="text-sm font-bold text-slate-900">
+                  <p className="truncate text-sm font-bold text-slate-900">
                     {v.name || v.id || v._id}
                   </p>
-                  <p className="text-[11px] text-slate-500">{v.status || 'Tracked'}</p>
+                  <p className="truncate text-[11px] text-slate-500">{v.status || 'Tracked'}</p>
                 </div>
-                <Badge variant="live" dot>
+                <Badge variant="live" dot className="shrink-0">
                   LIVE
                 </Badge>
               </li>

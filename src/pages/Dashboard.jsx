@@ -8,11 +8,11 @@ import LiveMap from '../components/map/LiveMap';
  */
 export default function Dashboard() {
   return (
-    <div className="flex h-full min-h-screen flex-col bg-canvas">
-      {/* <Header /> */}
-      <div className="relative flex min-h-0 flex-1">
+    <div className="flex h-screen h-[100dvh] w-full flex-col bg-canvas overflow-hidden">
+      <Header />
+      <div className="relative flex min-h-0 flex-1 overflow-hidden">
         <Sidebar />
-        <main className="relative min-w-0 flex-1">
+        <main className="relative h-full min-h-0 min-w-0 flex-1">
           <LiveMap />
         </main>
       </div>

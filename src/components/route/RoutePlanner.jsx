@@ -72,9 +72,9 @@ export default function RoutePlanner() {
             type="button"
             aria-label="Swap origin and destination"
             onClick={swapEnds}
-            className="z-10 -my-1 flex h-8 w-8 items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 shadow-sm hover:bg-slate-50 hover:text-brand-700"
+            className="z-10 -my-1 flex h-9 w-9 min-h-[36px] min-w-[36px] items-center justify-center rounded-full border border-slate-200 bg-white text-slate-500 shadow-sm hover:bg-slate-50 hover:text-brand-700 active:scale-95 transition-transform"
           >
-            <ArrowUpDown className="h-3.5 w-3.5" />
+            <ArrowUpDown className="h-4 w-4" />
           </button>
         </div>
 
@@ -93,10 +93,10 @@ export default function RoutePlanner() {
       <div className="mt-3 flex flex-wrap gap-2">
         <Button
           variant="secondary"
-          size="sm"
+          size="md"
           loading={gpsLoading}
           onClick={useMyLocationForOrigin}
-          className="flex-1"
+          className="w-full flex-1 min-h-[40px]"
         >
           <Crosshair className="h-3.5 w-3.5" />
           Use My Location
@@ -112,7 +112,7 @@ export default function RoutePlanner() {
       )}
 
       <Button
-        className="mt-4 w-full"
+        className="mt-4 w-full min-h-[46px]"
         size="lg"
         loading={routes.status === 'loading'}
         disabled={!origin || !destination}

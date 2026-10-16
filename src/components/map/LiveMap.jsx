@@ -216,15 +216,44 @@ function FitBounds({ points }) {
       return;
     }
 
+    const isSmall = typeof window !== 'undefined' && window.innerWidth < 640;
+
     map.fitBounds(
       points,
       {
-        padding: [48, 48],
+        padding: isSmall ? [20, 20] : [48, 48],
         maxZoom: 14,
         animate: true,
       }
     );
   }, [map, points]);
+
+  return null;
+}
+
+function MapResizeHandler() {
+  const map = useMap();
+  const { sidebarOpen } = useAppData();
+
+  useEffect(() => {
+    map.invalidateSize();
+    const timer = setTimeout(() => {
+      map.invalidateSize();
+    }, 350);
+    return () => clearTimeout(timer);
+  }, [map, sidebarOpen]);
+
+  useEffect(() => {
+    const handleResize = () => {
+      map.invalidateSize();
+    };
+    window.addEventListener('resize', handleResize);
+    window.addEventListener('orientationchange', handleResize);
+    return () => {
+      window.removeEventListener('resize', handleResize);
+      window.removeEventListener('orientationchange', handleResize);
+    };
+  }, [map]);
 
   return null;
 }
@@ -862,6 +891,8 @@ export default function LiveMap() {
           layerId={tile.id}
         />
 
+        <MapResizeHandler />
+
 
         {/* ====================================================
             MAP CONTROLS
@@ -1414,10 +1445,10 @@ export default function LiveMap() {
                   >
 
                     <Popup
-                      maxWidth={340}
+                      maxWidth={320}
                     >
 
-                      <div className="w-[270px]">
+                      <div className="w-[240px] sm:w-[270px] max-w-full">
 
                         {/* Incident type */}
 

@@ -137,7 +137,7 @@ export default function MapControls() {
 
 
   return (
-    <div className="absolute right-3 top-3 z-[1000] flex flex-col gap-2">
+    <div className="absolute right-2.5 sm:right-3 top-2.5 sm:top-3 z-[1000] flex flex-col gap-2">
 
       {/* ===================================================
           ZOOM CONTROLS
@@ -148,7 +148,7 @@ export default function MapControls() {
         <button
           type="button"
           aria-label="Zoom in"
-          className="flex h-10 w-10 items-center justify-center border-b border-slate-100 text-slate-700 hover:bg-slate-50"
+          className="flex h-10 w-10 items-center justify-center border-b border-slate-100 text-slate-700 hover:bg-slate-50 min-h-[40px] min-w-[40px]"
           onClick={() => map.zoomIn()}
         >
           <Plus className="h-4 w-4" />
@@ -158,7 +158,7 @@ export default function MapControls() {
         <button
           type="button"
           aria-label="Zoom out"
-          className="flex h-10 w-10 items-center justify-center text-slate-700 hover:bg-slate-50"
+          className="flex h-10 w-10 items-center justify-center text-slate-700 hover:bg-slate-50 min-h-[40px] min-w-[40px]"
           onClick={() => map.zoomOut()}
         >
           <Minus className="h-4 w-4" />
@@ -175,7 +175,7 @@ export default function MapControls() {
         type="button"
         aria-label="Use my location"
         disabled={loading}
-        className="flex h-10 w-10 items-center justify-center rounded-xl border border-slate-200 bg-white text-brand-700 shadow-md hover:bg-brand-50 disabled:opacity-50"
+        className="flex h-10 w-10 min-h-[40px] min-w-[40px] items-center justify-center rounded-xl border border-slate-200 bg-white text-brand-700 shadow-md hover:bg-brand-50 disabled:opacity-50"
         onClick={async () => {
           try {
             const pos =
@@ -231,6 +231,8 @@ export default function MapControls() {
             flex
             h-10
             w-10
+            min-h-[40px]
+            min-w-[40px]
             items-center
             justify-center
             rounded-xl
@@ -257,14 +259,18 @@ export default function MapControls() {
           <div
             className="
               absolute
-              right-12
+              right-11 sm:right-12
               top-0
-              w-56
+              w-52 sm:w-56
+              max-w-[calc(100vw-4rem)]
+              max-h-[75vh]
+              overflow-y-auto
+              ner-scroll
               rounded-xl
               border
               border-slate-200
               bg-white
-              p-3
+              p-2.5 sm:p-3
               shadow-xl
             "
           >

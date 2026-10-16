@@ -809,10 +809,10 @@ export default function IncidentPanel() {
           <Button
             type="button"
             variant="secondary"
-            size="sm"
+            size="md"
             loading={gpsLoading}
             onClick={useGps}
-            className="w-full"
+            className="w-full min-h-[40px]"
           >
             <Crosshair className="h-3.5 w-3.5" />
 
@@ -930,8 +930,9 @@ export default function IncidentPanel() {
                 <Button
                   type="button"
                   variant="secondary"
-                  size="sm"
+                  size="md"
                   onClick={openCamera}
+                  className="min-h-[40px]"
                 >
                   <Camera className="h-4 w-4" />
                   Camera
@@ -941,10 +942,11 @@ export default function IncidentPanel() {
                 <Button
                   type="button"
                   variant="secondary"
-                  size="sm"
+                  size="md"
                   onClick={() =>
                     fileInputRef.current?.click()
                   }
+                  className="min-h-[40px]"
                 >
                   <Upload className="h-4 w-4" />
                   Upload Image
@@ -1019,7 +1021,7 @@ export default function IncidentPanel() {
             </label>
 
 
-            <div className="grid grid-cols-4 gap-1.5">
+            <div className="grid grid-cols-2 min-[380px]:grid-cols-4 gap-1.5">
 
               {Object.values(
                 INCIDENT_SEVERITY
@@ -1035,7 +1037,7 @@ export default function IncidentPanel() {
                         severityValue
                       )
                     }
-                    className={`rounded-lg border px-1 py-2 text-[10px] font-bold ${
+                    className={`min-h-[38px] flex items-center justify-center rounded-lg border px-1.5 py-2 text-[10px] min-[360px]:text-[11px] font-bold transition-colors ${
                       severity ===
                       severityValue
                         ? severityVariant(
@@ -1047,7 +1049,7 @@ export default function IncidentPanel() {
                               ) === 'warn'
                             ? 'border-amber-300 bg-warn-soft text-warn'
                             : 'border-emerald-300 bg-safe-soft text-safe'
-                        : 'border-slate-200 bg-white text-slate-500'
+                        : 'border-slate-200 bg-white text-slate-500 hover:bg-slate-50'
                     }`}
                   >
                     {severityValue}
@@ -1111,7 +1113,8 @@ export default function IncidentPanel() {
 
           <Button
             type="submit"
-            className="w-full"
+            size="lg"
+            className="w-full min-h-[46px]"
             loading={submitting}
           >
             Submit Incident
