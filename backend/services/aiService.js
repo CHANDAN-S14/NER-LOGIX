@@ -1,6 +1,6 @@
 import { AppError } from '../middleware/errorMiddleware.js';
 
-const DEFAULT_AI_URL = 'http://127.0.0.1:8000';
+const DEFAULT_AI_URL = 'https://ner-logix-ai-service.onrender.com';
 
 function aiBaseUrl() {
   return (process.env.AI_SERVICE_URL || DEFAULT_AI_URL).replace(/\/+$/, '');
