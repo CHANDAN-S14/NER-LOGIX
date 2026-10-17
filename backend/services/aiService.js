@@ -3,7 +3,7 @@ import { AppError } from '../middleware/errorMiddleware.js';
 const DEFAULT_AI_URL = 'https://ner-logix-ai-service.onrender.com';
 
 function aiBaseUrl() {
-  return (process.env.AI_SERVICE_URL || DEFAULT_AI_URL).replace(/\/+$/, '');
+  return ( DEFAULT_AI_URL).replace(/\/+$/, '');
 }
 
 /**
