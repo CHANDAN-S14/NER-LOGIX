@@ -4,9 +4,7 @@ import { API_URL } from './config';
  * Low-level fetch wrapper. Throws ApiError on failure.
  */
 async function request(path, options = {}) {
-  if (!API_URL) {
-    throw new ApiError('API URL not configured (VITE_API_URL)', 0, 'CONFIG');
-  }
+  const url = API_URL ? `${API_URL}${path}` : path;
 
   const headers = {
     'Content-Type': 'application/json',
@@ -15,7 +13,7 @@ async function request(path, options = {}) {
 
   let response;
   try {
-    response = await fetch(`${API_URL}${path}`, {
+    response = await fetch(url, {
       ...options,
       headers,
     });

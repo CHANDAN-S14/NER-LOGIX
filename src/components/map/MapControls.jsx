@@ -11,9 +11,10 @@ import {
   Route,
   Droplets,
   Check,
+  X,
 } from 'lucide-react';
 
-import { useState } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { useMap } from 'react-leaflet';
 
 import {
@@ -59,8 +60,32 @@ export default function MapControls() {
   } = useGeolocation();
 
 
-  const [layersOpen, setLayersOpen] =
-    useState(false);
+  const [layersOpen, setLayersOpen] = useState(false);
+  const layersRef = useRef(null);
+
+  /* Close layer panel when clicking outside or pressing Escape */
+  useEffect(() => {
+    if (!layersOpen) return;
+
+    const handleOutsideClick = (e) => {
+      if (layersRef.current && !layersRef.current.contains(e.target)) {
+        setLayersOpen(false);
+      }
+    };
+
+    const handleKeyDown = (e) => {
+      if (e.key === 'Escape') {
+        setLayersOpen(false);
+      }
+    };
+
+    document.addEventListener('pointerdown', handleOutsideClick);
+    document.addEventListener('keydown', handleKeyDown);
+    return () => {
+      document.removeEventListener('pointerdown', handleOutsideClick);
+      document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [layersOpen]);
 
 
   /* -------------------------------------------------------
@@ -212,7 +237,7 @@ export default function MapControls() {
           LAYERS
       =================================================== */}
 
-      <div className="relative">
+      <div ref={layersRef} className="relative">
 
         {/* -------------------------------------------------
             LAYER BUTTON
@@ -242,7 +267,7 @@ export default function MapControls() {
             transition-colors
             ${
               layersOpen
-                ? 'bg-brand-800 text-white'
+                ? 'bg-brand-800 text-white ring-2 ring-brand-400'
                 : 'bg-brand-700 text-white hover:bg-brand-800'
             }
           `}
@@ -262,8 +287,8 @@ export default function MapControls() {
               right-11 sm:right-12
               top-0
               w-52 sm:w-56
-              max-w-[calc(100vw-4rem)]
-              max-h-[75vh]
+              max-w-[calc(100vw-3.25rem)]
+              max-h-[70vh]
               overflow-y-auto
               ner-scroll
               rounded-xl
@@ -272,6 +297,7 @@ export default function MapControls() {
               bg-white
               p-2.5 sm:p-3
               shadow-xl
+              z-50
             "
           >
 
@@ -279,18 +305,19 @@ export default function MapControls() {
 
             <div className="mb-2 flex items-center justify-between border-b border-slate-100 pb-2">
 
-              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-700">
+              <span className="text-[11px] font-bold uppercase tracking-wider text-slate-800">
                 Map Layers
               </span>
 
               <button
                 type="button"
+                aria-label="Close layers panel"
                 onClick={() =>
                   setLayersOpen(false)
                 }
-                className="text-[10px] text-slate-400 hover:text-slate-700"
+                className="flex h-6 w-6 items-center justify-center rounded-md text-slate-400 hover:bg-slate-100 hover:text-slate-700"
               >
-                Close
+                <X className="h-3.5 w-3.5" />
               </button>
 
             </div>

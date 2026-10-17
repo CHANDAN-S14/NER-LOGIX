@@ -5,10 +5,31 @@
 
 const trimSlash = (url = '') => url.replace(/\/+$/, '');
 
-export const API_URL = trimSlash(import.meta.env.VITE_API_URL || '');
-export const SOCKET_URL = trimSlash(
-  import.meta.env.VITE_SOCKET_URL || import.meta.env.VITE_API_URL || ''
-);
+function getBaseApiUrl() {
+  if (import.meta.env.VITE_API_URL) {
+    return trimSlash(import.meta.env.VITE_API_URL);
+  }
+  if (typeof window !== 'undefined') {
+    const isLocalhost =
+      window.location.hostname === 'localhost' ||
+      window.location.hostname === '127.0.0.1';
+    if (isLocalhost && window.location.port !== '5000') {
+      return 'http://localhost:5000';
+    }
+    return trimSlash(window.location.origin);
+  }
+  return '';
+}
+
+function getBaseSocketUrl() {
+  if (import.meta.env.VITE_SOCKET_URL) {
+    return trimSlash(import.meta.env.VITE_SOCKET_URL);
+  }
+  return getBaseApiUrl();
+}
+
+export const API_URL = getBaseApiUrl();
+export const SOCKET_URL = getBaseSocketUrl();
 
 /** Northeast India default map center (Guwahati corridor) */
 export const MAP_DEFAULT = {

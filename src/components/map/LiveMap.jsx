@@ -3,6 +3,7 @@ import {
   useEffect,
   useMemo,
   useRef,
+  useState,
 } from 'react';
 
 import {
@@ -17,6 +18,14 @@ import {
   Tooltip,
   useMap,
 } from 'react-leaflet';
+
+import {
+  Menu,
+  ChevronDown,
+  ChevronUp,
+  AlertTriangle,
+  Navigation2,
+} from 'lucide-react';
 
 import {
   useAppData,
@@ -47,6 +56,8 @@ import {
 
 import {
   normalizeRiskLevel,
+  formatRiskLabel,
+  riskBadgeClasses,
 } from '../../utils/risk';
 
 import Badge from '../common/Badge';
@@ -216,12 +227,13 @@ function FitBounds({ points }) {
       return;
     }
 
-    const isSmall = typeof window !== 'undefined' && window.innerWidth < 640;
+    const isSmall = typeof window !== 'undefined' && window.innerWidth < 1024;
 
     map.fitBounds(
       points,
       {
-        padding: isSmall ? [20, 20] : [48, 48],
+        paddingTopLeft: isSmall ? [24, 24] : [48, 48],
+        paddingBottomRight: isSmall ? [24, 140] : [48, 48],
         maxZoom: 14,
         animate: true,
       }
@@ -399,9 +411,15 @@ function getRouteType(route) {
 }
 
 
-function formatRouteDistance(distanceKm) {
-  const value = Number(distanceKm);
+function formatRouteDistance(input) {
+  let km = null;
+  if (typeof input === 'object' && input !== null) {
+    km = input.distanceKm ?? (input.distance != null ? input.distance / 1000 : null);
+  } else {
+    km = Number(input);
+  }
 
+  const value = Number(km);
   if (!Number.isFinite(value)) {
     return '';
   }
@@ -410,9 +428,15 @@ function formatRouteDistance(distanceKm) {
 }
 
 
-function formatRouteDuration(durationMin) {
-  const value = Number(durationMin);
+function formatRouteDuration(input) {
+  let min = null;
+  if (typeof input === 'object' && input !== null) {
+    min = input.durationMin ?? (input.duration != null ? input.duration / 60 : null);
+  } else {
+    min = Number(input);
+  }
 
+  const value = Number(min);
   if (!Number.isFinite(value)) {
     return '';
   }
@@ -430,27 +454,43 @@ function formatRouteDuration(durationMin) {
   )} min`;
 }
 
+function categoryLabel(route, index = 0) {
+  if (!route) return 'Route';
+  const labels = Array.isArray(route.labels) ? route.labels.join(' ').toLowerCase() : '';
+  const cat = `${route.category || route.type || route.name || ''} ${labels}`.toLowerCase();
+  if (cat.includes('safe') || cat.includes('recommend')) return 'Recommended Safe';
+  if (cat.includes('fast')) return 'Fastest';
+  if (cat.includes('short')) return 'Shortest';
+  if (route.recommended) return 'Recommended Safe';
+  if (index === 0) return 'Option A';
+  if (index === 1) return 'Option B';
+  return `Option ${String.fromCharCode(65 + index)}`;
+}
 
-function getRouteColor(route, selected) {
+function getRouteColor(route, selected, index = 0) {
   if (selected) {
-    return '#2563eb';
+    return '#1d4ed8'; // Royal blue
   }
 
   const type = getRouteType(route);
 
+  if (type === 'SAFEST') {
+    return '#059669'; // Emerald
+  }
+
   if (type === 'FASTEST') {
-    return '#60a5fa';
+    return '#d97706'; // Amber
   }
 
   if (type === 'SHORTEST') {
-    return '#94a3b8';
+    return '#7c3aed'; // Purple
   }
 
-  if (type === 'SAFEST') {
-    return '#34d399';
-  }
+  if (index === 0) return '#059669';
+  if (index === 1) return '#7c3aed';
+  if (index === 2) return '#d97706';
 
-  return '#cbd5e1';
+  return '#64748b'; // Slate
 }
 
 
@@ -459,12 +499,12 @@ function getRouteLabel(route) {
 
   const distance =
     formatRouteDistance(
-      route?.distanceKm
+      route
     );
 
   const duration =
     formatRouteDuration(
-      route?.durationMin
+      route
     );
 
   if (distance && duration) {
@@ -490,6 +530,10 @@ export default function LiveMap() {
     routes,
     selectedRoute,
     selectedRouteId,
+    setSelectedRouteId,
+
+    sidebarOpen,
+    setSidebarOpen,
 
     incidents,
     blockages,
@@ -596,7 +640,8 @@ export default function LiveMap() {
           color:
             getRouteColor(
               route,
-              selected
+              selected,
+              idx
             ),
 
           selected,
@@ -604,12 +649,12 @@ export default function LiveMap() {
           weight:
             selected
               ? 7
-              : 4,
+              : 5,
 
           opacity:
             selected
               ? 1
-              : 0.78,
+              : 0.85,
 
           route,
 
@@ -1010,6 +1055,9 @@ export default function LiveMap() {
                   positions={
                     route.coords
                   }
+                  eventHandlers={{
+                    click: () => setSelectedRouteId(route.id),
+                  }}
                   pathOptions={{
                     color:
                       '#ffffff',
@@ -1037,6 +1085,9 @@ export default function LiveMap() {
                   positions={
                     route.coords
                   }
+                  eventHandlers={{
+                    click: () => setSelectedRouteId(route.id),
+                  }}
                   pathOptions={{
                     color:
                       route.color,
@@ -2106,6 +2157,170 @@ export default function LiveMap() {
 
       <MapLegend />
 
+      {/* Mobile Route Bottom Sheet */}
+      {!sidebarOpen && routes.status === 'success' && Array.isArray(routes.data) && routes.data.length > 0 && (
+        <MobileRouteSheet
+          routes={routes}
+          selectedRouteId={selectedRouteId}
+          setSelectedRouteId={setSelectedRouteId}
+          selectedRoute={selectedRoute}
+          onOpenMenu={() => setSidebarOpen(true)}
+        />
+      )}
+
+    </div>
+  );
+}
+
+/* ============================================================
+   MOBILE ROUTE SHEET
+   ============================================================ */
+
+function MobileRouteSheet({
+  routes,
+  selectedRouteId,
+  setSelectedRouteId,
+  selectedRoute,
+  onOpenMenu,
+}) {
+  const [expanded, setExpanded] = useState(true);
+
+  if (
+    routes.status !== 'success' ||
+    !Array.isArray(routes.data) ||
+    routes.data.length === 0
+  ) {
+    return null;
+  }
+
+  const list = routes.data;
+
+  return (
+    <div
+      className="fixed bottom-2.5 left-2 right-2 sm:left-4 sm:right-4 z-[1000] lg:hidden rounded-2xl border border-slate-200/90 bg-white/95 p-3 shadow-xl backdrop-blur-md transition-all duration-200 ease-in-out"
+      role="region"
+      aria-label="Mobile corridor alternatives"
+    >
+      {/* Top action bar */}
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex items-center gap-2 min-w-0">
+          <button
+            type="button"
+            onClick={onOpenMenu}
+            className="flex items-center gap-1.5 rounded-xl border border-slate-200 bg-slate-50 px-2.5 py-1.5 text-xs font-bold text-slate-800 shadow-sm hover:bg-slate-100 active:scale-95 transition-transform min-h-[36px]"
+            aria-label="Back to dashboard menu"
+          >
+            <Menu className="h-4 w-4 text-brand-700" />
+            <span>Menu</span>
+          </button>
+
+          <div className="flex items-center gap-1.5 min-w-0">
+            <span className="text-xs font-bold text-slate-900 truncate">
+              Corridors ({list.length})
+            </span>
+            {routes.warning && (
+              <span
+                title={routes.warning}
+                className="flex items-center gap-1 rounded bg-amber-100 px-1.5 py-0.5 text-[10px] font-semibold text-amber-800"
+              >
+                <AlertTriangle className="h-3 w-3 text-amber-600 shrink-0" />
+                <span className="hidden sm:inline">AI Scoring Offline</span>
+              </span>
+            )}
+          </div>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => setExpanded((prev) => !prev)}
+          className="flex h-8 w-8 items-center justify-center rounded-lg text-slate-500 hover:bg-slate-100 hover:text-slate-900"
+          aria-label={expanded ? 'Collapse corridors' : 'Expand corridors'}
+        >
+          {expanded ? (
+            <ChevronDown className="h-4 w-4" />
+          ) : (
+            <ChevronUp className="h-4 w-4" />
+          )}
+        </button>
+      </div>
+
+      {/* Expanded corridor alternative chips */}
+      {expanded ? (
+        <div className="mt-2.5">
+          <div className="flex gap-2 overflow-x-auto pb-1 ner-scroll">
+            {list.map((r, i) => {
+              const id = String(r.id || r._id || i);
+              const isSelected = String(selectedRouteId) === id;
+              const cat = categoryLabel(r, i);
+              const dist = formatRouteDistance(r);
+              const dur = formatRouteDuration(r);
+              const lvl = r.riskLevel || r.risk_level;
+              const score = r.riskScore ?? r.risk_score;
+
+              return (
+                <button
+                  key={id}
+                  type="button"
+                  onClick={() => setSelectedRouteId(id)}
+                  className={`flex flex-col text-left shrink-0 min-w-[135px] max-w-[185px] p-2.5 rounded-xl border transition-all ${
+                    isSelected
+                      ? 'border-brand-600 bg-brand-50/90 shadow-sm ring-2 ring-brand-500/20'
+                      : 'border-slate-200 bg-white hover:bg-slate-50'
+                  }`}
+                >
+                  <div className="flex items-center justify-between gap-1">
+                    <span
+                      className={`text-[11px] font-bold truncate ${
+                        isSelected ? 'text-brand-900' : 'text-slate-800'
+                      }`}
+                    >
+                      {cat}
+                    </span>
+                    {lvl && (
+                      <span
+                        className={`text-[9px] font-bold px-1.5 py-0.5 rounded ${riskBadgeClasses(
+                          lvl
+                        )}`}
+                      >
+                        {formatRiskLabel(lvl)}
+                        {score != null ? ` (${score})` : ''}
+                      </span>
+                    )}
+                  </div>
+                  <div className="mt-1 flex items-baseline gap-1.5 text-xs">
+                    <span className="font-bold text-slate-900">{dist}</span>
+                    <span className="text-[11px] text-slate-500">{dur}</span>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+
+          {routes.warning && (
+            <p className="mt-2 flex items-center gap-1.5 rounded-lg bg-amber-50 px-2 py-1 text-[11px] text-amber-800">
+              <AlertTriangle className="h-3 w-3 shrink-0 text-amber-600" />
+              <span className="truncate">{routes.warning}</span>
+            </p>
+          )}
+        </div>
+      ) : (
+        /* Collapsed summary */
+        <div
+          onClick={() => setExpanded(true)}
+          className="mt-1 flex items-center justify-between text-xs cursor-pointer pt-1"
+        >
+          <span className="font-medium text-slate-700 truncate">
+            {selectedRoute
+              ? `${categoryLabel(selectedRoute, 0)} • ${formatRouteDistance(
+                  selectedRoute
+                )} • ${formatRouteDuration(selectedRoute)}`
+              : 'Corridor active'}
+          </span>
+          <span className="text-[11px] font-bold text-brand-700 shrink-0 ml-2">
+            Switch Corridor
+          </span>
+        </div>
+      )}
     </div>
   );
 }

@@ -1,5 +1,5 @@
 import { useState } from 'react';
-import { Navigation2 } from 'lucide-react';
+import { Navigation2, AlertTriangle } from 'lucide-react';
 import NavigationMode from './NavigationMode';
 import { useAppData } from '../../context/AppDataContext';
 import Badge from '../common/Badge';
@@ -121,6 +121,12 @@ const [navigating, setNavigating] =
 
   return (
     <section className="animate-fade-in space-y-3">
+      {routes.warning && (
+        <div className="flex items-start gap-2 rounded-xl border border-amber-200 bg-amber-50/90 p-2.5 text-xs text-amber-800">
+          <AlertTriangle className="h-4 w-4 shrink-0 text-amber-600 mt-0.5" />
+          <span className="leading-snug">{routes.warning}</span>
+        </div>
+      )}
       {selectedRoute && (
         <div className="rounded-2xl border border-brand-100 bg-brand-50/60 p-3">
           <div className="flex flex-wrap items-center justify-between gap-2">

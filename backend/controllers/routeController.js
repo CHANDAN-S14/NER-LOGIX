@@ -87,27 +87,37 @@ export const analyzeRoute = asyncHandler(async (req, res) => {
     steps: r.steps,
   }));
 
-  const aiResult = await aiService.analyzeRoutes({
-    routes: routePayloads.map(
-      ({ id, distance, duration, blocked, roadCondition, incidentSeverity }) => ({
-        id,
-        distance,
-        duration,
-        blocked,
-        roadCondition,
-        incidentSeverity,
-      })
-    ),
-    weather: weather
-      ? {
-          rainfall: weather.rainfall ?? 0,
-          temperature: weather.temperature ?? 25,
-          wind: weather.wind ?? 0,
-          visibility: weather.visibility ?? 10,
-        }
-      : undefined,
-    historicalRisk: 50,
-  });
+  let aiResult = null;
+  let aiAvailable = true;
+  let aiWarning = null;
+
+  try {
+    aiResult = await aiService.analyzeRoutes({
+      routes: routePayloads.map(
+        ({ id, distance, duration, blocked, roadCondition, incidentSeverity }) => ({
+          id,
+          distance,
+          duration,
+          blocked,
+          roadCondition,
+          incidentSeverity,
+        })
+      ),
+      weather: weather
+        ? {
+            rainfall: weather.rainfall ?? 0,
+            temperature: weather.temperature ?? 25,
+            wind: weather.wind ?? 0,
+            visibility: weather.visibility ?? 10,
+          }
+        : undefined,
+      historicalRisk: 50,
+    });
+  } catch (err) {
+    console.warn('[routeController] AI route analysis unavailable:', err.message);
+    aiAvailable = false;
+    aiWarning = 'AI scoring is temporarily unavailable. Displaying standard calculated corridors.';
+  }
 
   // Merge AI scores onto OSRM geometry (geometry stays from OSRM)
   const aiRoutes = aiResult?.routes || [];
@@ -137,6 +147,8 @@ export const analyzeRoute = asyncHandler(async (req, res) => {
     destination,
     routes: merged,
     recommendedRouteId: aiResult?.recommendedRouteId || null,
+    aiAvailable,
+    aiWarning,
     weather,
     context: {
       blockedRoadCount: blockedRoads.length,

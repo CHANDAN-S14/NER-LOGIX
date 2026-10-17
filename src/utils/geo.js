@@ -63,6 +63,7 @@ export function decodePolyline(encoded) {
 }
 
 
+<<<<<<< HEAD
 /**
  * Normalize route geometry into Leaflet format:
  * [[latitude, longitude], ...]
@@ -151,6 +152,67 @@ export function normalizeRouteGeometry(route) {
     return cleanLatLon(route.coordinates);
   }
 
+=======
+
+export function normalizeRouteGeometry(route) {
+  if (!route) return [];
+
+  // GeoJSON LineString: [longitude, latitude]
+  if (
+    route.geometry?.type === 'LineString' &&
+    Array.isArray(route.geometry.coordinates)
+  ) {
+    return route.geometry.coordinates
+      .map(([lng, lat]) => [Number(lat), Number(lng)])
+      .filter(
+        ([lat, lng]) =>
+          Number.isFinite(lat) &&
+          Number.isFinite(lng) &&
+          Math.abs(lat) <= 90 &&
+          Math.abs(lng) <= 180
+      );
+  }
+
+  // Geometry supplied directly as an array
+  const coordinates = Array.isArray(route.geometry)
+    ? route.geometry
+    : Array.isArray(route.coordinates)
+      ? route.coordinates
+      : null;
+
+  if (coordinates) {
+    return coordinates
+      .map((point) => {
+        if (!Array.isArray(point) || point.length < 2) return null;
+
+        const a = Number(point[0]);
+        const b = Number(point[1]);
+
+        if (!Number.isFinite(a) || !Number.isFinite(b)) return null;
+
+        // Longitude cannot exceed 180; latitude cannot exceed 90.
+        if (Math.abs(a) > 90 && Math.abs(b) <= 90) {
+          return [b, a];
+        }
+
+        if (Math.abs(a) <= 90 && Math.abs(b) <= 180) {
+          return [a, b];
+        }
+
+        return null;
+      })
+      .filter(Boolean);
+  }
+
+  if (typeof route.geometry === 'string') {
+    return decodePolyline(route.geometry);
+  }
+
+  if (typeof route.polyline === 'string') {
+    return decodePolyline(route.polyline);
+  }
+
+>>>>>>> 444631e (Fix route analysis and responsive map controls)
   return [];
 }
 

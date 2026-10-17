@@ -68,11 +68,12 @@ const idle = {
   error: null,
 };
 
-function asyncState(status, data = null, error = null) {
+function asyncState(status, data = null, error = null, warning = null) {
   return {
     status,
     data,
     error,
+    warning,
   };
 }
 
@@ -573,12 +574,12 @@ export function AppDataProvider({ children }) {
 
   const findSafeRoute = useCallback(
     async () => {
-
       if (
         !origin?.lat ||
-        !destination?.lat
+        (origin?.lon == null && origin?.lng == null) ||
+        !destination?.lat ||
+        (destination?.lon == null && destination?.lng == null)
       ) {
-
         setRoutes(
           asyncState(
             'error',
@@ -586,32 +587,23 @@ export function AppDataProvider({ children }) {
             'Origin and destination required'
           )
         );
-
         return null;
       }
 
-      setRoutes(
-        asyncState('loading')
-      );
-
+      setRoutes(asyncState('loading'));
       setSelectedRouteId(null);
 
       try {
-
         const planned = await planRoute({
-
           origin: {
-            lat: origin.lat,
-            lon: origin.lon,
+            lat: Number(origin.lat),
+            lon: Number(origin.lon ?? origin.lng),
           },
-
           destination: {
-            lat: destination.lat,
-            lon: destination.lon,
+            lat: Number(destination.lat),
+            lon: Number(destination.lon ?? destination.lng),
           },
-
         });
-
 
         let routeList = Array.isArray(planned)
           ? planned
@@ -619,88 +611,120 @@ export function AppDataProvider({ children }) {
             planned?.data ||
             [];
 
-
-        /* -----------------------------------------------
-           Optional AI enrichment
-           ----------------------------------------------- */
-
-        try {
-
-          const analyzed =
-            await analyzeRoutes({
-
-              origin,
-
-              destination,
-
-              routes: routeList,
-
-            });
-
-
-          if (analyzed?.routes) {
-
-            routeList =
-              analyzed.routes;
-
-          } else if (
-            Array.isArray(analyzed)
-          ) {
-
-            routeList = analyzed;
-          }
-
-          setAiStatus(
-            CONNECTION.LIVE
-          );
-
-        } catch {
-
-          /*
-           * Keep raw routes if AI enrichment fails.
-           */
+        if (!routeList.length) {
+          throw new Error('No routes returned for this corridor pair');
         }
 
+        /* -------------------------------------------------------------------
+           AI ENRICHMENT: Compact Payload
+           Do NOT send thousands of GeoJSON coordinates, legs, or steps to AI.
+           Send only route summaries to eliminate HTTP 413 Payload Too Large.
+           ------------------------------------------------------------------- */
+        let aiWarning = null;
+        let recommendedId = null;
+
+        try {
+          const compactRoutes = routeList.map((r, i) => ({
+            id: String(r.id || `route-${i + 1}`),
+            distance: Number(r.distance ?? (r.distanceKm ? r.distanceKm * 1000 : 0)),
+            duration: Number(r.duration ?? (r.durationMin ? r.durationMin * 60 : 0)),
+            blocked: Boolean(r.blocked),
+            roadCondition: String(
+              r.roadCondition ||
+              (weather.data?.rainfall > 5 ? 'wet' : weather.data?.rainfall > 0 ? 'damp' : 'normal')
+            ),
+            incidentSeverity: String(
+              r.incidentSeverity ||
+              (incidents.data?.length ? incidents.data[0].severity : 'none')
+            ),
+          }));
+
+          const analyzed = await analyzeRoutes({
+            routes: compactRoutes,
+            weather: weather.data
+              ? {
+                  rainfall: Number(weather.data.rainfall ?? 0),
+                  temperature: Number(weather.data.temperature ?? 25),
+                  wind: Number(weather.data.wind ?? 0),
+                  visibility: Number(weather.data.visibility ?? 10),
+                }
+              : undefined,
+            historicalRisk: 50,
+          });
+
+          const evaluatedList =
+            analyzed?.routes || (Array.isArray(analyzed) ? analyzed : []);
+          const evalMap = new Map(
+            evaluatedList.map((item) => [String(item.id), item])
+          );
+
+          recommendedId = analyzed?.recommendedRouteId || null;
+
+          // Merge AI evaluation onto original route list while strictly preserving OSRM geometry
+          routeList = routeList.map((orig, i) => {
+            const rid = String(orig.id || `route-${i + 1}`);
+            const evald = evalMap.get(rid) || {};
+            const labels = [...(orig.labels || [])];
+            if (
+              recommendedId &&
+              rid === String(recommendedId) &&
+              !labels.includes('SAFEST') &&
+              !labels.includes('RECOMMENDED')
+            ) {
+              labels.push('SAFEST', 'RECOMMENDED');
+            }
+            return {
+              ...orig,
+              ...evald,
+              geometry: orig.geometry, // PRESERVE COMPLETE ORIGINAL GEOMETRY
+              legs: orig.legs,
+              steps: orig.steps,
+              labels: labels.length ? labels : evald.labels || orig.labels,
+            };
+          });
+
+          setAiStatus(CONNECTION.LIVE);
+        } catch (aiErr) {
+          console.warn('AI route analysis unavailable, proceeding with standard corridors:', aiErr);
+          setAiStatus(CONNECTION.OFFLINE);
+          aiWarning = 'AI scoring temporarily unavailable. Displaying standard calculated corridors.';
+        }
 
         setRoutes(
           asyncState(
             'success',
-            routeList
+            routeList,
+            null,
+            aiWarning
           )
         );
 
+        const firstId =
+          (recommendedId &&
+            routeList.find((r) => String(r.id) === String(recommendedId))?.id) ||
+          routeList[0]?.id ||
+          routeList[0]?._id ||
+          '0';
 
-        if (routeList[0]) {
+        setSelectedRouteId(firstId);
 
-          setSelectedRouteId(
-            routeList[0].id ||
-              routeList[0]._id ||
-              '0'
-          );
+        // Mobile experience: automatically close mobile drawer to show live map
+        if (typeof window !== 'undefined' && window.innerWidth < 1024) {
+          setSidebarOpen(false);
         }
-
 
         /* -----------------------------------------------
            Trigger risk analysis for selected corridor
            ----------------------------------------------- */
-
         loadRisk({
-
           origin,
-
           destination,
-
           weather: weather.data,
-
           incidents: incidents.data,
-
         });
 
-
         return routeList;
-
       } catch (err) {
-
         setRoutes(
           asyncState(
             'error',
@@ -708,7 +732,6 @@ export function AppDataProvider({ children }) {
             err.message
           )
         );
-
         return null;
       }
     },
@@ -718,6 +741,7 @@ export function AppDataProvider({ children }) {
       weather.data,
       incidents.data,
       loadRisk,
+      setSidebarOpen,
     ]
   );
 
